@@ -9,3 +9,20 @@ class IrisDataset(Dataset):
 
     def __len__(self):
         return len(self.annotations)
+
+class DRFBlock(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel, pad_rate, atrous_rate):
+        super(DRFBlock, self).__init__()
+        
+        self.conv = nn.Conv2d(in_channels, out_channels, 1, bias=False)
+        self.block = nn.Sequential(
+            nn.InstanceNorm2d(out_channels),
+            nn.Conv2d(out_channels, out_channels, kernel_size = kernel, padding=pad_rate, dilation=atrous_rate, bias=False),
+            nn.Tanh()
+        )
+        self.tanh = nn.Tanh()
+
+    def forward(self, x):
+        x1 = self.conv(x)
+        x2 = self.block(x1)
+        return self.tanh(x1.add(x2))
